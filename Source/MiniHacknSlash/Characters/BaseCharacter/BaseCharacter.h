@@ -4,10 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "AbilitySystemInterface.h"
+#include "AbilitySystemComponent.h"
 #include "BaseCharacter.generated.h"
 
 UCLASS()
-class MINIHACKNSLASH_API ABaseCharacter : public ACharacter
+class MINIHACKNSLASH_API ABaseCharacter : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -19,10 +21,16 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AbilitySystemComponent")
+	TObjectPtr<UAbilitySystemComponent> AbilitySystemComp;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	UAbilitySystemComponent* GetAbilitySystemComponent() const override {
+		return AbilitySystemComp;
+	}
 };

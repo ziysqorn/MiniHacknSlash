@@ -6,10 +6,13 @@
 #include "EnhancedInputComponent.h"
 #include "../../Interfaces/CanMove/CanMove.h"
 #include "../../Interfaces/CanDodge/CanDodge.h"
+#include "../../Interfaces/CanLockTarget/CanLockTarget.h"
 
 void AMainController::BeginPlay()
 {
 	Super::BeginPlay();
+
+	SetupMappingContext();
 }
 
 void AMainController::SetupInputComponent()
@@ -22,6 +25,7 @@ void AMainController::SetupInputComponent()
 		if (IsValid(IA_Move)) EIComponent->BindAction(IA_Move, ETriggerEvent::Triggered, this, &AMainController::MoveTriggered);
 		if (IsValid(IA_Look)) EIComponent->BindAction(IA_Look, ETriggerEvent::Triggered, this, &AMainController::Look);
 		if (IsValid(IA_Dodge)) EIComponent->BindAction(IA_Dodge, ETriggerEvent::Triggered, this, &AMainController::DodgeTriggered);
+		if (IsValid(IA_LockTarget)) EIComponent->BindAction(IA_LockTarget, ETriggerEvent::Triggered, this, &AMainController::LockTargetTriggered);
 	}
 }
 
@@ -35,7 +39,7 @@ void AMainController::SetupMappingContext()
 void AMainController::MoveTriggered(const FInputActionValue& value)
 {
 	if (ICanMove* CanMove = Cast<ICanMove>(this->GetPawn())) {
-		FVector2D MoveDir = value.Get<FVector2D>();
+		FVector MoveDir = value.Get<FVector>();
 		CanMove->Move(MoveDir);
 	}
 }
@@ -47,9 +51,24 @@ void AMainController::DodgeTriggered()
 	}
 }
 
+void AMainController::LockTargetTriggered()
+{
+	if (ICanLockTarget* CanLockTarget = Cast<ICanLockTarget>(this->GetPawn())) {
+		CanLockTarget->LockTarget();
+	}
+}
+
 void AMainController::Look(const FInputActionValue& value)
 {
-	FVector lookDirectionVal = value.Get<FVector>();
-	AddYawInput(lookDirectionVal.X);
-	AddPitchInput(lookDirectionVal.Y);
+	bool bCanLook = true;
+	if (ICanLockTarget* CanLockTarget = Cast<ICanLockTarget>(this->GetPawn())) {
+		if (CanLockTarget->GetLockedOnTarget().IsValid()) {
+			bCanLook = false;
+		}
+	}
+	if (bCanLook) {
+		FVector lookDirectionVal = value.Get<FVector>();
+		AddYawInput(lookDirectionVal.X);
+		AddPitchInput(lookDirectionVal.Y);
+	}
 }

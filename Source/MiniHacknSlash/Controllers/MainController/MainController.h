@@ -26,6 +26,15 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Need set | InputAction | Dodge")
 	TObjectPtr<UInputAction> IA_Dodge;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Need set | InputAction | Lock Target")
+	TObjectPtr<UInputAction> IA_LockTarget;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Need set | InputAction | Light Attack")
+	TObjectPtr<UInputAction> IA_LightAttack;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Need set | InputAction | Block")
+	TObjectPtr<UInputAction> IA_Block;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Need set | InputMappingContext")
 	TObjectPtr<UInputMappingContext> IMC_MainCharacter;
 
@@ -40,4 +49,6 @@ protected:
 	void Look(const FInputActionValue& value);
 
 	void DodgeTriggered();
+
+	void LockTargetTriggered();
 };

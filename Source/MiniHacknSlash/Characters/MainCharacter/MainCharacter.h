@@ -8,14 +8,15 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "../../Interfaces/CanMove/CanMove.h"
 #include "../../Interfaces/CanDodge/CanDodge.h"
-#include "AbilitySystemInterface.h"
+#include "../../Interfaces/CanLockTarget/CanLockTarget.h"
+#include "../../DataAsset/MainCharacterAbilities/DA_MainCharacterAbilities.h"
 #include "MainCharacter.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class MINIHACKNSLASH_API AMainCharacter : public ABaseCharacter, public ICanMove, public ICanDodge, public IAbilitySystemInterface
+class MINIHACKNSLASH_API AMainCharacter : public ABaseCharacter, public ICanMove, public ICanDodge, public ICanLockTarget
 {
 	GENERATED_BODY()
 
@@ -30,15 +31,33 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "SpringArm")
 	TObjectPtr<USpringArmComponent> SpringArmComp;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AbilitySystemComponent")
-	TObjectPtr<UAbilitySystemComponent> AbilitySystemComp;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Need set | GameplayAbilityDataAsset")
+	TObjectPtr<UDA_MainCharacterAbilities> DA_GameplayAbilities;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Need set | Detect Box Extent")
+	FVector DetectBoxExtent;
+
+	UPROPERTY()
+	TWeakObjectPtr<AActor> LockedOnTarget = nullptr;
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	void Move(const FVector2D& MoveDir) override;
+	void GrantCharacterAbilities();
+
+	void Move(const FVector& MoveDir) override;
 
 	void Dodge() override;
+
+	void LockTarget() override;
+
+	TWeakObjectPtr<AActor> GetLockedOnTarget() override {
+		return LockedOnTarget;
+	}
+
+	void SetMovementAfterLockTarget();
+
+	void RotateToLockTarget(float DeltaTime);
 
 public:
 	// Called every frame
@@ -46,8 +65,4 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	UAbilitySystemComponent* GetAbilitySystemComponent() const override {
-		return AbilitySystemComp;
-	}
 };

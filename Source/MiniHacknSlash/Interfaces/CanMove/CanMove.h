@@ -23,5 +23,5 @@ class MINIHACKNSLASH_API ICanMove
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-	virtual void Move(const FVector2D& MoveDir) = 0;
+	virtual void Move(const FVector& MoveDir) = 0;
 };
