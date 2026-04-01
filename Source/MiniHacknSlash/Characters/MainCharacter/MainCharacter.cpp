@@ -2,8 +2,11 @@
 
 
 #include "MainCharacter.h"
-#include "../../GameplayAbilities/Move/GA_Move.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "EnhancedInputSubsystems.h"
+#include "../../GameplayAbilities/Move/GA_Move.h"
+#include "../../Controllers/MainController/MainController.h"
+
 
 AMainCharacter::AMainCharacter()
 {
@@ -45,7 +48,7 @@ void AMainCharacter::GrantCharacterAbilities()
 
 		AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(DA_GameplayAbilities->GetGameplayAbilitySubclass("GA_Move"), 1, -1, this));
 		AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(DA_GameplayAbilities->GetGameplayAbilitySubclass("GA_Dodge"), 1, -1, this));
-		AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(DA_GameplayAbilities->GetGameplayAbilitySubclass("GA_Attack"), 1, -1, this));
+		AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(DA_GameplayAbilities->GetGameplayAbilitySubclass("GA_Melee_LightAttack"), 1, -1, this));
 		AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(DA_GameplayAbilities->GetGameplayAbilitySubclass("GA_Block"), 1, -1, this));
 	}
 }
@@ -67,6 +70,33 @@ void AMainCharacter::Dodge()
 	if (IsValid(AbilitySystemComp)) {
 		FGameplayTagContainer tagContainer;
 		tagContainer.AddTag(FGameplayTag::RequestGameplayTag(FName("GameplayAbility.Dodge")));
+		AbilitySystemComp->TryActivateAbilitiesByTag(tagContainer);
+	}
+}
+
+void AMainCharacter::Block()
+{
+	if (IsValid(AbilitySystemComp)) {
+		FGameplayTagContainer tagContainer;
+		tagContainer.AddTag(FGameplayTag::RequestGameplayTag(FName("GameplayAbility.Block")));
+		AbilitySystemComp->TryActivateAbilitiesByTag(tagContainer);
+	}
+}
+
+void AMainCharacter::EndBlock()
+{
+	if (IsValid(AbilitySystemComp)) {
+		FGameplayTagContainer tagContainer;
+		tagContainer.AddTag(FGameplayTag::RequestGameplayTag(FName("GameplayAbility.Block")));
+		AbilitySystemComp->CancelAbilities(&tagContainer);
+	}
+}
+
+void AMainCharacter::LightAttack()
+{
+	if (IsValid(AbilitySystemComp)) {
+		FGameplayTagContainer tagContainer;
+		tagContainer.AddTag(FGameplayTag::RequestGameplayTag(FName("GameplayAbility.Melee.LightAttack")));
 		AbilitySystemComp->TryActivateAbilitiesByTag(tagContainer);
 	}
 }
@@ -101,13 +131,11 @@ void AMainCharacter::SetMovementAfterLockTarget()
 {
 	if (UCharacterMovementComponent* CharMovementComponent = GetCharacterMovement()) {
 		if (LockedOnTarget.IsValid()) {
-			CharMovementComponent->MaxWalkSpeed = 250.0f;
 			CharMovementComponent->bOrientRotationToMovement = false;
 			CharMovementComponent->bUseControllerDesiredRotation = true;
 			bUseControllerRotationYaw = true;
 		}
 		else {
-			CharMovementComponent->MaxWalkSpeed = 400.0f;
 			CharMovementComponent->bOrientRotationToMovement = true;
 			CharMovementComponent->bUseControllerDesiredRotation = false;
 			bUseControllerRotationYaw = false;
@@ -128,5 +156,21 @@ void AMainCharacter::RotateToLockTarget(float DeltaTime)
 			}
 		}
 	}
+}
+
+FVector AMainCharacter::GetDesiredDodgeDirection()
+{
+	if (AMainController* MainController = GetController<AMainController>()) {
+		if (UEnhancedInputLocalPlayerSubsystem* EISubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(MainController->GetLocalPlayer())) {
+			if (UEnhancedPlayerInput* PlayerInput = EISubsystem->GetPlayerInput()) {
+				TObjectPtr<UInputAction> IA_Move = MainController->GetMoveInputAction();
+					if (IsValid(IA_Move)) {
+						const FInputActionValue ActionValue = PlayerInput->GetActionValue(IA_Move);
+						return ActionValue.Get<FVector>();
+					}
+			}
+		}
+	}
+	return FVector();
 }
 

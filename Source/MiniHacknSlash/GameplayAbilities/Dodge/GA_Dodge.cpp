@@ -4,6 +4,10 @@
 #include "GA_Dodge.h"
 #include "GameFramework/Character.h"
 #include "../../Interfaces/CanLockTarget/CanLockTarget.h"
+#include "../../Interfaces/CanDodge/CanDodge.h"
+#include "EnhancedInputSubsystems.h"
+#include "EnhancedInputComponent.h"
+#include "../../Controllers/MainController/MainController.h"
 
 void UGA_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
@@ -12,9 +16,27 @@ void UGA_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const F
 		CurrentActorInfo = ActorInfo;
 		CurrentActivationInfo = ActivationInfo;
 		if (IsValid(DA_DodgeAnimMontages)) {
-			if (UAbilityTask_PlayMontageAndWait* PlayDodgeMontageAndWait = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, FName("PlayDodgeMontageAndWait"), ChooseMontageToUse())) {
-				PlayDodgeMontageAndWait->OnCompleted.AddDynamic(this, &UGA_Dodge::DodgeEnd);
-				PlayDodgeMontageAndWait->ReadyForActivation();
+			FVector NormalizedVelocity = CurrentActorInfo->OwnerActor->GetVelocity().GetSafeNormal();
+			if (TObjectPtr<UAnimMontage> ChosenDodgeMontage = ChooseMontageToUse()) {
+				if (UAbilityTask_PlayMontageAndWait* PlayDodgeMontageAndWait = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, FName("PlayDodgeMontageAndWait"), ChosenDodgeMontage)) {
+					PlayDodgeMontageAndWait->OnCompleted.AddDynamic(this, &UGA_Dodge::DodgeEnd);
+					PlayDodgeMontageAndWait->ReadyForActivation();
+				}
+				if (UAbilityTask_ApplyRootMotionConstantForce* DashTask = UAbilityTask_ApplyRootMotionConstantForce::ApplyRootMotionConstantForce(
+					this,
+					FName("DodgeDashForce"),
+					NormalizedVelocity,
+					DodgeForce,
+					DodgeDuration,
+					false,
+					nullptr,
+					ERootMotionFinishVelocityMode::SetVelocity,
+					FVector::ZeroVector,
+					0.f,
+					false
+				)) {
+					DashTask->ReadyForActivation();
+				}
 			}
 		}
 	}
@@ -23,25 +45,26 @@ void UGA_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const F
 TObjectPtr<UAnimMontage> UGA_Dodge::ChooseMontageToUse()
 {
 	if (CurrentActorInfo) {
-		if (ACharacter* character = Cast<ACharacter>(CurrentActorInfo->OwnerActor)) {
-			if (IsValid(DA_DodgeAnimMontages)) {
-				FVector LastInputMovementVector = character->GetLastMovementInputVector();
-				if (LastInputMovementVector.X > 0.f) {
-					LastInputMovementVector.X = 1.f;
+		if (IsValid(DA_DodgeAnimMontages)) {
+			if (ICanDodge* CanDodge = Cast<ICanDodge>(CurrentActorInfo->OwnerActor)) {
+				FVector DodgeMovementVector = CanDodge->GetDesiredDodgeDirection();
+
+				if (DodgeMovementVector.X > 0.f) {
+					DodgeMovementVector.X = 1.f;
 				}
-				else if(LastInputMovementVector.X < 0.f){
-					LastInputMovementVector.X = -1.f;
+				else if (DodgeMovementVector.X < 0.f) {
+					DodgeMovementVector.X = -1.f;
 				}
-				if (LastInputMovementVector.Y > 0.f) {
-					LastInputMovementVector.Y = 1.f;
+				if (DodgeMovementVector.Y > 0.f) {
+					DodgeMovementVector.Y = 1.f;
 				}
-				else if(LastInputMovementVector.Y < 0.f) {
-					LastInputMovementVector.Y = -1.f;
+				else if (DodgeMovementVector.Y < 0.f) {
+					DodgeMovementVector.Y = -1.f;
 				}
-				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan, LastInputMovementVector.ToString());
-				if (ICanLockTarget* CanLockTarget = Cast<ICanLockTarget>(character)) {
+
+				if (ICanLockTarget* CanLockTarget = Cast<ICanLockTarget>(CurrentActorInfo->OwnerActor)) {
 					if (CanLockTarget->GetLockedOnTarget().IsValid()) {
-						return DA_DodgeAnimMontages->GetDodgeMontage(LastInputMovementVector);
+						return DA_DodgeAnimMontages->GetDodgeMontage(DodgeMovementVector);
 					}
 				}
 				return DA_DodgeAnimMontages->GetDodgeMontage("Dodge_Forward");

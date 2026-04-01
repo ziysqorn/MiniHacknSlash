@@ -14,7 +14,6 @@ class MINIHACKNSLASH_API UGA_Block : public UGameplayAbility
 {
 	GENERATED_BODY()
 	
-	
-	
-	
+protected:
+	void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 };

@@ -18,6 +18,15 @@ class MINIHACKNSLASH_API UGA_Dodge : public UGameplayAbility
 	GENERATED_BODY()
 
 protected:
+	UPROPERTY()
+	FVector DodgeDirection;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Need set | Dodge Force")
+	float DodgeForce = 1500.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Need set | Dodge Duration")
+	float DodgeDuration = 0.5f;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Need set | Dodge Anim Montages")
 	TObjectPtr<UDA_DodgeAnimMontages> DA_DodgeAnimMontages;
 

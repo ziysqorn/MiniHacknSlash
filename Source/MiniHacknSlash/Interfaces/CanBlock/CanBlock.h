@@ -5,11 +5,11 @@
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
 
-#include "CanDodge.generated.h"
+#include "CanBlock.generated.h"
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
-class UCanDodge : public UInterface
+class UCanBlock : public UInterface
 {
 	GENERATED_BODY()
 };
@@ -17,12 +17,12 @@ class UCanDodge : public UInterface
 /**
  * 
  */
-class MINIHACKNSLASH_API ICanDodge
+class MINIHACKNSLASH_API ICanBlock
 {
 	GENERATED_BODY()
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-	virtual void Dodge() = 0;
-	virtual FVector GetDesiredDodgeDirection() = 0;
+	virtual void Block() = 0;
+	virtual void EndBlock() = 0;
 };

@@ -30,7 +30,7 @@ protected:
 	TObjectPtr<UInputAction> IA_LockTarget;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Need set | InputAction | Light Attack")
-	TObjectPtr<UInputAction> IA_LightAttack;
+	TObjectPtr<UInputAction> IA_Melee_LightAttack;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Need set | InputAction | Block")
 	TObjectPtr<UInputAction> IA_Block;
@@ -51,4 +51,18 @@ protected:
 	void DodgeTriggered();
 
 	void LockTargetTriggered();
+
+	void BlockTriggered();
+
+	void BlockEnd();
+
+	void LightAttackTriggered();
+
+public:
+	TObjectPtr<UInputAction> GetMoveInputAction() {
+		return IA_Move;
+	}
+
+	UFUNCTION(BlueprintCallable)
+	FVector GetMoveInputValue();
 };

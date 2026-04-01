@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
-#include "GA_Attack.generated.h"
+#include "GA_Melee_LightAttack.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class MINIHACKNSLASH_API UGA_Attack : public UGameplayAbility
+class MINIHACKNSLASH_API UGA_Melee_LightAttack : public UGameplayAbility
 {
 	GENERATED_BODY()
 };

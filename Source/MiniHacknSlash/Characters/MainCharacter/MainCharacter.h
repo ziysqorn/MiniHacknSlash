@@ -3,12 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "../BaseCharacter/BaseCharacter.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "../BaseCharacter/BaseCharacter.h"
 #include "../../Interfaces/CanMove/CanMove.h"
 #include "../../Interfaces/CanDodge/CanDodge.h"
 #include "../../Interfaces/CanLockTarget/CanLockTarget.h"
+#include "../../Interfaces/CanBlock/CanBlock.h"
+#include "../../Interfaces/CanAttack/CanAttack.h"
 #include "../../DataAsset/MainCharacterAbilities/DA_MainCharacterAbilities.h"
 #include "MainCharacter.generated.h"
 
@@ -16,7 +18,7 @@
  * 
  */
 UCLASS()
-class MINIHACKNSLASH_API AMainCharacter : public ABaseCharacter, public ICanMove, public ICanDodge, public ICanLockTarget
+class MINIHACKNSLASH_API AMainCharacter : public ABaseCharacter, public ICanMove, public ICanDodge, public ICanLockTarget, public ICanBlock, public ICanAttack
 {
 	GENERATED_BODY()
 
@@ -37,7 +39,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Need set | Detect Box Extent")
 	FVector DetectBoxExtent;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	TWeakObjectPtr<AActor> LockedOnTarget = nullptr;
 
 	// Called when the game starts or when spawned
@@ -48,6 +50,12 @@ protected:
 	void Move(const FVector& MoveDir) override;
 
 	void Dodge() override;
+
+	void Block() override;
+
+	void EndBlock() override;
+
+	void LightAttack() override;
 
 	void LockTarget() override;
 
@@ -65,4 +73,6 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	FVector GetDesiredDodgeDirection() override;
 };

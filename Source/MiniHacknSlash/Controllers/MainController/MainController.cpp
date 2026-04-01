@@ -7,6 +7,8 @@
 #include "../../Interfaces/CanMove/CanMove.h"
 #include "../../Interfaces/CanDodge/CanDodge.h"
 #include "../../Interfaces/CanLockTarget/CanLockTarget.h"
+#include "../../Interfaces/CanBlock/CanBlock.h"
+#include "../../Interfaces/CanAttack/CanAttack.h"
 
 void AMainController::BeginPlay()
 {
@@ -26,6 +28,9 @@ void AMainController::SetupInputComponent()
 		if (IsValid(IA_Look)) EIComponent->BindAction(IA_Look, ETriggerEvent::Triggered, this, &AMainController::Look);
 		if (IsValid(IA_Dodge)) EIComponent->BindAction(IA_Dodge, ETriggerEvent::Triggered, this, &AMainController::DodgeTriggered);
 		if (IsValid(IA_LockTarget)) EIComponent->BindAction(IA_LockTarget, ETriggerEvent::Triggered, this, &AMainController::LockTargetTriggered);
+		if (IsValid(IA_Block)) EIComponent->BindAction(IA_Block, ETriggerEvent::Triggered, this, &AMainController::BlockTriggered);
+		if (IsValid(IA_Block)) EIComponent->BindAction(IA_Block, ETriggerEvent::Completed, this, &AMainController::BlockTriggered);
+		if (IsValid(IA_Melee_LightAttack)) EIComponent->BindAction(IA_Melee_LightAttack, ETriggerEvent::Triggered, this, &AMainController::LightAttackTriggered);
 	}
 }
 
@@ -56,6 +61,40 @@ void AMainController::LockTargetTriggered()
 	if (ICanLockTarget* CanLockTarget = Cast<ICanLockTarget>(this->GetPawn())) {
 		CanLockTarget->LockTarget();
 	}
+}
+
+void AMainController::BlockTriggered()
+{
+	if (ICanBlock* CanBlock = Cast<ICanBlock>(this->GetPawn())) {
+		CanBlock->Block();
+	}
+}
+
+void AMainController::BlockEnd()
+{
+	if (ICanBlock* CanBlock = Cast<ICanBlock>(this->GetPawn())) {
+		CanBlock->EndBlock();
+	}
+}
+
+void AMainController::LightAttackTriggered()
+{
+	if (ICanAttack* CanAttack = Cast<ICanAttack>(this->GetPawn())) {
+		CanAttack->LightAttack();
+	}
+}
+
+FVector AMainController::GetMoveInputValue()
+{
+	if (UEnhancedInputLocalPlayerSubsystem* EISubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(this->GetLocalPlayer())) {
+		if (UEnhancedPlayerInput* EnhancedPlayerInput = EISubsystem->GetPlayerInput()) {
+			if (IsValid(IA_Move)) {
+				const FInputActionValue ActionValue = EnhancedPlayerInput->GetActionValue(IA_Move);
+				return ActionValue.Get<FVector>();
+			}
+		}
+	}
+	return FVector();
 }
 
 void AMainController::Look(const FInputActionValue& value)
