@@ -18,9 +18,4 @@ void AAICharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void AAICharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-}
-
 

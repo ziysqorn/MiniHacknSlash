@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
 #include "AbilitySystemComponent.h"
+#include "../../DataAsset/GameplayAbilities/DA_GameplayAbilities.h"
 #include "BaseCharacter.generated.h"
 
 UCLASS()
@@ -23,6 +24,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AbilitySystemComponent")
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComp;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Need set | GameplayAbilityDataAsset")
+	TObjectPtr<UDA_GameplayAbilities> DA_GameplayAbilities;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

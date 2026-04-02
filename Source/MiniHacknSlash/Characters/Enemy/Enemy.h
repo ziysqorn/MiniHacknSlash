@@ -14,4 +14,9 @@ class MINIHACKNSLASH_API AEnemy : public AAICharacter
 {
 	GENERATED_BODY()
 
+public:
+	AEnemy();
+
+protected:
+	virtual void BeginPlay() override;
 };

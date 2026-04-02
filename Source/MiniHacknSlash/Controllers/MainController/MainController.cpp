@@ -4,6 +4,7 @@
 #include "MainController.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
+#include "../../ActorComponents/CombatComponent/CombatComponent.h"
 #include "../../Interfaces/CanMove/CanMove.h"
 #include "../../Interfaces/CanDodge/CanDodge.h"
 #include "../../Interfaces/CanLockTarget/CanLockTarget.h"
@@ -79,6 +80,7 @@ void AMainController::BlockEnd()
 
 void AMainController::LightAttackTriggered()
 {
+	AddSavedInputToBuffer(TEXT("L"));
 	if (ICanAttack* CanAttack = Cast<ICanAttack>(this->GetPawn())) {
 		CanAttack->LightAttack();
 	}
@@ -95,6 +97,16 @@ FVector AMainController::GetMoveInputValue()
 		}
 	}
 	return FVector();
+}
+
+void AMainController::GetSavedInputBuffer_Implementation(TArray<FString>& OutBuffer)
+{
+	OutBuffer = SavedInputBuffer;
+}
+
+void AMainController::ClearSavedInputBuffer_Implementation()
+{
+	SavedInputBuffer.Empty(10);
 }
 
 void AMainController::Look(const FInputActionValue& value)

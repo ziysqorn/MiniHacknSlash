@@ -5,13 +5,13 @@
 #include "CoreMinimal.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "../../ActorComponents/CombatComponent/CombatComponent.h"
 #include "../BaseCharacter/BaseCharacter.h"
 #include "../../Interfaces/CanMove/CanMove.h"
 #include "../../Interfaces/CanDodge/CanDodge.h"
 #include "../../Interfaces/CanLockTarget/CanLockTarget.h"
 #include "../../Interfaces/CanBlock/CanBlock.h"
 #include "../../Interfaces/CanAttack/CanAttack.h"
-#include "../../DataAsset/MainCharacterAbilities/DA_MainCharacterAbilities.h"
 #include "MainCharacter.generated.h"
 
 /**
@@ -33,8 +33,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "SpringArm")
 	TObjectPtr<USpringArmComponent> SpringArmComp;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Need set | GameplayAbilityDataAsset")
-	TObjectPtr<UDA_MainCharacterAbilities> DA_GameplayAbilities;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ActorComponent | CombatComponent")
+	TObjectPtr<UCombatComponent> CombatComp;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Need set | Detect Box Extent")
 	FVector DetectBoxExtent;

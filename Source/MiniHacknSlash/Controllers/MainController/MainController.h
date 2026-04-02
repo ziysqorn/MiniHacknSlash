@@ -6,17 +6,21 @@
 #include "GameFramework/PlayerController.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
+#include "../../Interfaces/CanSaveInput/CanSaveInput.h"
 #include "MainController.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class MINIHACKNSLASH_API AMainController : public APlayerController
+class MINIHACKNSLASH_API AMainController : public APlayerController, public ICanSaveInput
 {
 	GENERATED_BODY()
 
 protected:
+	UPROPERTY()
+	TArray<FString> SavedInputBuffer;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Need set | InputAction | Move")
 	TObjectPtr<UInputAction> IA_Move;
 
@@ -65,4 +69,16 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	FVector GetMoveInputValue();
+
+	void GetSavedInputBuffer_Implementation(TArray<FString>& OutBuffer);
+
+	UFUNCTION(BlueprintCallable)
+	void AddSavedInputToBuffer(const FString& Input) {
+		if (SavedInputBuffer.Num() == 10) {
+			SavedInputBuffer.RemoveAt(0, EAllowShrinking::No);
+		}
+		SavedInputBuffer.Add(Input);
+	}
+
+	void ClearSavedInputBuffer_Implementation();
 };

@@ -12,7 +12,7 @@ AMainCharacter::AMainCharacter()
 {
 	CameraComp = CreateDefaultSubobject<UCameraComponent>("CameraComponent");
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>("SpringArmComponent");
-	AbilitySystemComp = CreateDefaultSubobject<UAbilitySystemComponent>("AbilitySystemComponent");
+	CombatComp = CreateDefaultSubobject<UCombatComponent>("CombatComponent");
 	if (IsValid(SpringArmComp)) {
 		SpringArmComp->SetupAttachment(this->GetMesh());
 		if (IsValid(CameraComp)) {
@@ -49,7 +49,7 @@ void AMainCharacter::GrantCharacterAbilities()
 		AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(DA_GameplayAbilities->GetGameplayAbilitySubclass("GA_Move"), 1, -1, this));
 		AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(DA_GameplayAbilities->GetGameplayAbilitySubclass("GA_Dodge"), 1, -1, this));
 		AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(DA_GameplayAbilities->GetGameplayAbilitySubclass("GA_Melee_LightAttack"), 1, -1, this));
-		AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(DA_GameplayAbilities->GetGameplayAbilitySubclass("GA_Block"), 1, -1, this));
+		//AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(DA_GameplayAbilities->GetGameplayAbilitySubclass("GA_Block"), 1, -1, this));
 	}
 }
 
@@ -96,7 +96,7 @@ void AMainCharacter::LightAttack()
 {
 	if (IsValid(AbilitySystemComp)) {
 		FGameplayTagContainer tagContainer;
-		tagContainer.AddTag(FGameplayTag::RequestGameplayTag(FName("GameplayAbility.Melee.LightAttack")));
+		tagContainer.AddTag(FGameplayTag::RequestGameplayTag(FName("GameplayAbility.Attack.Melee.LightAttack")));
 		AbilitySystemComp->TryActivateAbilitiesByTag(tagContainer);
 	}
 }
