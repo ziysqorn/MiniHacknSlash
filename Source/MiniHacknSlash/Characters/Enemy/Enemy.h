@@ -4,13 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "../AICharacter/AICharacter.h"
+#include "Components/BoxComponent.h"
+#include "../../ActorComponents/CombatComponent/CombatComponent.h"
+#include "../../Interfaces/CanAttack/CanAttack.h"
 #include "Enemy.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class MINIHACKNSLASH_API AEnemy : public AAICharacter
+class MINIHACKNSLASH_API AEnemy : public AAICharacter, public ICanAttack
 {
 	GENERATED_BODY()
 
@@ -18,5 +21,13 @@ public:
 	AEnemy();
 
 protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Collision Box Component")
+	TObjectPtr<UBoxComponent> CollisionBoxComp;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ActorComponent | CombatComponent")
+	TObjectPtr<UCombatComponent> CombatComp;
+
 	virtual void BeginPlay() override;
+
+	void LightAttack() override;
 };

@@ -7,21 +7,18 @@
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "Animation/AnimMontage.h"
-#include "GA_Melee_LightAttack.generated.h"
+#include "GA_Melee_LightCounterAttack.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class MINIHACKNSLASH_API UGA_Melee_LightAttack : public UGameplayAbility
+class MINIHACKNSLASH_API UGA_Melee_LightCounterAttack : public UGameplayAbility
 {
 	GENERATED_BODY()
-
-public:
-	UGA_Melee_LightAttack();
-
+	
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = "Need set | Attack Montage")
+	UPROPERTY(EditDefaultsOnly, Category = "Need set | Counter Attack Montage")
 	TObjectPtr<UAnimMontage> AM_Attack;
 
 	void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;

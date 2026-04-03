@@ -5,7 +5,9 @@
 #include "CoreMinimal.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "MotionWarpingComponent.h"
 #include "../../ActorComponents/CombatComponent/CombatComponent.h"
+#include "../../ActorComponents/GameFeelComponent/GameFeelComponent.h"
 #include "../BaseCharacter/BaseCharacter.h"
 #include "../../Interfaces/CanMove/CanMove.h"
 #include "../../Interfaces/CanDodge/CanDodge.h"
@@ -33,11 +35,20 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "SpringArm")
 	TObjectPtr<USpringArmComponent> SpringArmComp;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MotionWarping")
+	TObjectPtr<UMotionWarpingComponent> MotionWarpingComp;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ActorComponent | CombatComponent")
 	TObjectPtr<UCombatComponent> CombatComp;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ActorComponent | CombatComponent")
+	TObjectPtr<UGameFeelComponent> GameFeelComp;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Need set | Detect Box Extent")
 	FVector DetectBoxExtent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Need set | Counter Attack Box Extent")
+	FVector CounterAttackBoxExtent;
 
 	UPROPERTY(BlueprintReadOnly)
 	TWeakObjectPtr<AActor> LockedOnTarget = nullptr;
@@ -66,6 +77,8 @@ protected:
 	void SetMovementAfterLockTarget();
 
 	void RotateToLockTarget(float DeltaTime);
+
+	AActor* DetectForCounterAttack();
 
 public:
 	// Called every frame

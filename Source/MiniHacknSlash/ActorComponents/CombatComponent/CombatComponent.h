@@ -24,6 +24,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Need set | Attack Combo Data")
 	TObjectPtr<UDA_MainCharacterAttackCombo> DA_AttackCombo;
 
+	UPROPERTY()
+	TSet<AActor*> OverlapHandledActorSet;
+
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
@@ -59,5 +62,12 @@ public:
 			return DA_AttackCombo->GetAttackCombo(AttackInputString);
 		}
 		return TEXT("");
+	}
+
+	UFUNCTION()
+	void OnAttackOverlapped(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	void ClearOverlapHandledActorSet() {
+		OverlapHandledActorSet.Empty();
 	}
 };

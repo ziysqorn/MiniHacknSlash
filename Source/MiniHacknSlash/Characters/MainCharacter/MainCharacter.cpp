@@ -12,7 +12,9 @@ AMainCharacter::AMainCharacter()
 {
 	CameraComp = CreateDefaultSubobject<UCameraComponent>("CameraComponent");
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>("SpringArmComponent");
+	MotionWarpingComp = CreateDefaultSubobject<UMotionWarpingComponent>("MotionWarpingComponent");
 	CombatComp = CreateDefaultSubobject<UCombatComponent>("CombatComponent");
+	GameFeelComp = CreateDefaultSubobject<UGameFeelComponent>("GameFeelComponent");
 	if (IsValid(SpringArmComp)) {
 		SpringArmComp->SetupAttachment(this->GetMesh());
 		if (IsValid(CameraComp)) {
@@ -49,6 +51,7 @@ void AMainCharacter::GrantCharacterAbilities()
 		AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(DA_GameplayAbilities->GetGameplayAbilitySubclass("GA_Move"), 1, -1, this));
 		AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(DA_GameplayAbilities->GetGameplayAbilitySubclass("GA_Dodge"), 1, -1, this));
 		AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(DA_GameplayAbilities->GetGameplayAbilitySubclass("GA_Melee_LightAttack"), 1, -1, this));
+		AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(DA_GameplayAbilities->GetGameplayAbilitySubclass("GA_Melee_LightCounterAttack"), 1, -1, this));
 		//AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(DA_GameplayAbilities->GetGameplayAbilitySubclass("GA_Block"), 1, -1, this));
 	}
 }
@@ -95,6 +98,21 @@ void AMainCharacter::EndBlock()
 void AMainCharacter::LightAttack()
 {
 	if (IsValid(AbilitySystemComp)) {
+		if (AActor* TargetActor = DetectForCounterAttack()) {
+			if (IsValid(MotionWarpingComp)) {
+				FVector TargetLocation = TargetActor->GetActorLocation() + TargetActor->GetActorRightVector() * -150.f;
+				MotionWarpingComp->AddOrUpdateWarpTargetFromLocation(FName("EnemyLeftSide"), TargetLocation);
+				FRotator TargetRotation = (TargetActor->GetActorLocation() - TargetLocation).Rotation();
+				FMotionWarpingTarget RotationTarget;
+				RotationTarget.Name = FName("TargetRotation");
+				RotationTarget.Rotation = TargetRotation;
+				MotionWarpingComp->AddOrUpdateWarpTarget(RotationTarget);
+			}
+			FGameplayTagContainer tagContainer;
+			tagContainer.AddTag(FGameplayTag::RequestGameplayTag(FName("GameplayAbility.Attack.Melee.LightCounterAttack")));
+			AbilitySystemComp->TryActivateAbilitiesByTag(tagContainer);
+			return;
+		}
 		FGameplayTagContainer tagContainer;
 		tagContainer.AddTag(FGameplayTag::RequestGameplayTag(FName("GameplayAbility.Attack.Melee.LightAttack")));
 		AbilitySystemComp->TryActivateAbilitiesByTag(tagContainer);
@@ -114,8 +132,8 @@ void AMainCharacter::LockTarget()
 		AdditionParams.AddIgnoredActor(this);
 		FVector CameraForwardDir = CameraComp->GetForwardVector();
 		FRotator BoxRotation = CameraForwardDir.Rotation();
-		FVector EndLocation = CameraComp->GetComponentLocation() + CameraForwardDir * 2000.0f;
-		if (GetWorld()->SweepMultiByObjectType(Hits, CameraComp->GetComponentLocation() + CameraForwardDir * 1200.0f, EndLocation, BoxRotation.Quaternion(), ObjectFilter, FCollisionShape::MakeBox(DetectBoxExtent), AdditionParams)) {
+		FVector EndLocation = GetActorLocation() + CameraForwardDir * 725.0f;
+		if (GetWorld()->SweepMultiByObjectType(Hits, GetActorLocation() + CameraForwardDir * 725.0f, EndLocation, BoxRotation.Quaternion(), ObjectFilter, FCollisionShape::MakeBox(DetectBoxExtent), AdditionParams)) {
 			for (int i = 0; i < Hits.Num(); ++i) {
 				if (IsValid(Hits[i].GetActor()) && this->GetClass() != Hits[i].GetActor()->GetClass()) {
 					LockedOnTarget = Hits[i].GetActor();
@@ -156,6 +174,26 @@ void AMainCharacter::RotateToLockTarget(float DeltaTime)
 			}
 		}
 	}
+}
+
+AActor* AMainCharacter::DetectForCounterAttack()
+{
+	TArray<FHitResult> Hits;
+	FCollisionObjectQueryParams ObjectFilter;
+	FCollisionQueryParams AdditionParams;
+	ObjectFilter.AddObjectTypesToQuery(ECollisionChannel::ECC_Pawn);
+	AdditionParams.AddIgnoredActor(this);
+	FVector CameraForwardDir = CameraComp->GetForwardVector();
+	FRotator BoxRotation = CameraForwardDir.Rotation();
+	FVector EndLocation = GetActorLocation() + CameraForwardDir * 50.f;
+	if (GetWorld()->SweepMultiByObjectType(Hits, GetActorLocation() + CameraForwardDir * 50.f, EndLocation, BoxRotation.Quaternion(), ObjectFilter, FCollisionShape::MakeBox(CounterAttackBoxExtent), AdditionParams)) {
+		for (int i = 0; i < Hits.Num(); ++i) {
+			if (IsValid(Hits[i].GetActor()) && this->GetClass() != Hits[i].GetActor()->GetClass()) {
+				return Hits[i].GetActor();
+			}
+		}
+	}
+	return nullptr;
 }
 
 FVector AMainCharacter::GetDesiredDodgeDirection()

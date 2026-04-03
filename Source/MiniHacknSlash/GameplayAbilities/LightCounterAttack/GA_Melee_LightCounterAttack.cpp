@@ -1,19 +1,16 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "GA_Melee_LightAttack.h"
+#include "GA_Melee_LightCounterAttack.h"
 #include "../../ActorComponents/CombatComponent/CombatComponent.h"
 #include "../../ActorComponents/GameFeelComponent/GameFeelComponent.h"
 #include "AbilitySystemInterface.h"
 #include "AbilitySystemComponent.h"
 
-UGA_Melee_LightAttack::UGA_Melee_LightAttack()
-{
-}
 
-void UGA_Melee_LightAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
+void UGA_Melee_LightCounterAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) 
 {
-	OnGameplayAbilityEnded.AddUObject(this, &UGA_Melee_LightAttack::OnAttackEnd);
+	OnGameplayAbilityEnded.AddUObject(this, &UGA_Melee_LightCounterAttack::OnAttackEnd);
 	if (ActorInfo && ActorInfo->OwnerActor.IsValid()) {
 		CurrentSpecHandle = Handle;
 		CurrentActorInfo = ActorInfo;
@@ -23,13 +20,13 @@ void UGA_Melee_LightAttack::ActivateAbility(const FGameplayAbilitySpecHandle Han
 		}
 		if (IsValid(AM_Attack)) {
 			if (UAbilityTask_PlayMontageAndWait* PlayDodgeMontageAndWait = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, FName("PlayAttackMontageAndWait"), AM_Attack)) {
-				PlayDodgeMontageAndWait->OnCompleted.AddDynamic(this, &UGA_Melee_LightAttack::AttackEnd);
+				PlayDodgeMontageAndWait->OnCompleted.AddDynamic(this, &UGA_Melee_LightCounterAttack::AttackEnd);
 				PlayDodgeMontageAndWait->ReadyForActivation();
 			}
 		}
 		FGameplayTag targetHitTag = FGameplayTag::RequestGameplayTag(FName("GameplayEvent.TargetAttacked"));
 		if (UAbilityTask_WaitGameplayEvent* WaitForTargetHitTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, targetHitTag, nullptr, false, false)) {
-			WaitForTargetHitTask->EventReceived.AddDynamic(this, &UGA_Melee_LightAttack::TargetHit);
+			WaitForTargetHitTask->EventReceived.AddDynamic(this, &UGA_Melee_LightCounterAttack::TargetHit);
 			WaitForTargetHitTask->ReadyForActivation();
 		}
 		else {
@@ -38,12 +35,22 @@ void UGA_Melee_LightAttack::ActivateAbility(const FGameplayAbilitySpecHandle Han
 	}
 }
 
-void UGA_Melee_LightAttack::AttackEnd()
+void UGA_Melee_LightCounterAttack::OnAttackEnd(UGameplayAbility* Ability) 
+{
+	if (CurrentActorInfo && CurrentActorInfo->OwnerActor.IsValid()) {
+		if (UCombatComponent* CombatComp = CurrentActorInfo->OwnerActor->FindComponentByClass<UCombatComponent>()) {
+			CombatComp->ClearOverlapHandledActorSet();
+			CombatComp->ClearAttackInputBuffer();
+		}
+	}
+}
+
+void UGA_Melee_LightCounterAttack::AttackEnd() 
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
-void UGA_Melee_LightAttack::TargetHit(FGameplayEventData eventData)
+void UGA_Melee_LightCounterAttack::TargetHit(FGameplayEventData eventData) 
 {
 	if (const IAbilitySystemInterface* AbilitySystemInterface = Cast<IAbilitySystemInterface>(eventData.Target)) {
 		if (UAbilitySystemComponent* TargetAbilitySystemComp = AbilitySystemInterface->GetAbilitySystemComponent()) {
@@ -75,12 +82,3 @@ void UGA_Melee_LightAttack::TargetHit(FGameplayEventData eventData)
 	}
 }
 
-void UGA_Melee_LightAttack::OnAttackEnd(UGameplayAbility* Ability)
-{
-	if (CurrentActorInfo && CurrentActorInfo->OwnerActor.IsValid()) {
-		if (UCombatComponent* CombatComp = CurrentActorInfo->OwnerActor->FindComponentByClass<UCombatComponent>()) {
-			CombatComp->ClearOverlapHandledActorSet();
-			CombatComp->ClearAttackInputBuffer();
-		}
-	}
-}

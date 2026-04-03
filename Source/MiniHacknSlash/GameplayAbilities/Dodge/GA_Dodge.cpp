@@ -17,6 +17,10 @@ void UGA_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const F
 		CurrentActivationInfo = ActivationInfo;
 		if (IsValid(DA_DodgeAnimMontages)) {
 			FVector NormalizedVelocity = CurrentActorInfo->OwnerActor->GetVelocity().GetSafeNormal();
+			if (NormalizedVelocity == FVector::Zero()) {
+				NormalizedVelocity = CurrentActorInfo->OwnerActor->GetActorForwardVector();
+				NormalizedVelocity = -NormalizedVelocity;
+			}
 			if (TObjectPtr<UAnimMontage> ChosenDodgeMontage = ChooseMontageToUse()) {
 				if (UAbilityTask_PlayMontageAndWait* PlayDodgeMontageAndWait = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, FName("PlayDodgeMontageAndWait"), ChosenDodgeMontage)) {
 					PlayDodgeMontageAndWait->OnCompleted.AddDynamic(this, &UGA_Dodge::DodgeEnd);
@@ -67,6 +71,11 @@ TObjectPtr<UAnimMontage> UGA_Dodge::ChooseMontageToUse()
 						return DA_DodgeAnimMontages->GetDodgeMontage(DodgeMovementVector);
 					}
 				}
+				if (DodgeMovementVector == FVector::Zero()) {
+					DodgeMovementVector = CurrentActorInfo->OwnerActor->GetActorForwardVector();
+					DodgeMovementVector = -DodgeMovementVector;
+				}
+				CurrentActorInfo->OwnerActor->SetActorRotation(DodgeMovementVector.Rotation());
 				return DA_DodgeAnimMontages->GetDodgeMontage("Dodge_Forward");
 			}
 		}

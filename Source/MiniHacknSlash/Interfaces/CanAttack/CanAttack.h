@@ -6,8 +6,9 @@
 #include "UObject/Interface.h"
 #include "CanAttack.generated.h"
 
+class UBoxComponent;
 // This class does not need to be modified.
-UINTERFACE(MinimalAPI)
+UINTERFACE(MinimalAPI, BlueprintType)
 class UCanAttack : public UInterface
 {
 	GENERATED_BODY()
