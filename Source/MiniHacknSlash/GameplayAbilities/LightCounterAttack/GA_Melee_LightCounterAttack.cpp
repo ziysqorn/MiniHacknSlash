@@ -4,6 +4,7 @@
 #include "GA_Melee_LightCounterAttack.h"
 #include "../../ActorComponents/CombatComponent/CombatComponent.h"
 #include "../../ActorComponents/GameFeelComponent/GameFeelComponent.h"
+#include "MotionWarpingComponent.h"
 #include "AbilitySystemInterface.h"
 #include "AbilitySystemComponent.h"
 
@@ -15,8 +16,15 @@ void UGA_Melee_LightCounterAttack::ActivateAbility(const FGameplayAbilitySpecHan
 		CurrentSpecHandle = Handle;
 		CurrentActorInfo = ActorInfo;
 		CurrentActivationInfo = ActivationInfo;
-		if (UCombatComponent* CombatComp = ActorInfo->OwnerActor->FindComponentByClass<UCombatComponent>()) {
-			CombatComp->AddAttackInputToBuffer(TEXT("L"));
+		if (UMotionWarpingComponent* MotionWarpingComp = ActorInfo->OwnerActor->FindComponentByClass<UMotionWarpingComponent>()) {
+			FVector TargetLocation = ActorInfo->OwnerActor->GetActorLocation() + ActorInfo->OwnerActor->GetActorForwardVector() * -LeapBackDistance;
+			MotionWarpingComp->AddOrUpdateWarpTargetFromLocation(FName("CharacterBackSide"), TargetLocation);
+			if (UCombatComponent* CombatComp = ActorInfo->OwnerActor->FindComponentByClass<UCombatComponent>()) {
+				if (AActor* CounterAttackTarget = CombatComp->GetCounterAttackTarget()) {
+					FVector AttackTargetLocation = CounterAttackTarget->GetActorLocation() + CounterAttackTarget->GetActorForwardVector() * 150.f;
+					MotionWarpingComp->AddOrUpdateWarpTargetFromLocation(FName("EnemyFrontSide"), AttackTargetLocation);
+				}
+			}
 		}
 		if (IsValid(AM_Attack)) {
 			if (UAbilityTask_PlayMontageAndWait* PlayDodgeMontageAndWait = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, FName("PlayAttackMontageAndWait"), AM_Attack)) {
@@ -64,18 +72,24 @@ void UGA_Melee_LightCounterAttack::TargetHit(FGameplayEventData eventData)
 			}
 			if (UAbilitySystemComponent* SelfAbilitySystemComp = this->GetAbilitySystemComponentFromActorInfo()) {
 				if (CurrentActorInfo) {
-					/*if (AActor* OwnerActor = CurrentActorInfo->OwnerActor.Get()) {
-						if (UHitStopComponent* HitStopComp = OwnerActor->FindComponentByClass<UHitStopComponent>()) {
-							HitStopComp->NetMulticast_HitStop(HitStopDuration, HitStopDilation);
-							HitStopComp->Client_ShakeCameraOnHit();
+					FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(GE_DamageSubclass);
+					FGameplayEffectSpecHandle CounteredDamageSpecHandle = MakeOutgoingGameplayEffectSpec(GE_CounteredDamageMultiplierSubclass);
+					if (SpecHandle.Data) {
+						SpecHandle.Data->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(FName("Data.Damage.BonusDamage")), BonusDamage);
+						if (!TargetAbilitySystemComp->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Stun")))) {
+							SpecHandle.Data->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(FName("Data.Damage.BonusStunDamage")), BonusStunDamage);
 						}
 					}
-					if (AActor* TargetActor = TargetAbilitySystemComp->GetOwnerActor()) {
-						if (UHitStopComponent* HitStopComp = TargetActor->FindComponentByClass<UHitStopComponent>()) {
-							HitStopComp->NetMulticast_HitStop(HitStopDuration, HitStopDilation);
-							HitStopComp->Client_ShakeCameraOnHit();
+					SelfAbilitySystemComp->ApplyGameplayEffectSpecToSelf(*CounteredDamageSpecHandle.Data.Get());
+					SelfAbilitySystemComp->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), TargetAbilitySystemComp);
+
+					if (HitCameraShakeClass)
+					{
+						if (APlayerController* PC = CurrentActorInfo->PlayerController.Get())
+						{
+							PC->ClientStartCameraShake(HitCameraShakeClass, 1.0f);
 						}
-					}*/
+					}
 				}
 			}
 		}

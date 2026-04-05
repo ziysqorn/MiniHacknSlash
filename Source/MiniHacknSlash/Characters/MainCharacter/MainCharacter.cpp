@@ -12,14 +12,19 @@ AMainCharacter::AMainCharacter()
 {
 	CameraComp = CreateDefaultSubobject<UCameraComponent>("CameraComponent");
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>("SpringArmComponent");
+	CollisionBoxComp = CreateDefaultSubobject<UBoxComponent>("CollisionBoxComp");
 	MotionWarpingComp = CreateDefaultSubobject<UMotionWarpingComponent>("MotionWarpingComponent");
 	CombatComp = CreateDefaultSubobject<UCombatComponent>("CombatComponent");
 	GameFeelComp = CreateDefaultSubobject<UGameFeelComponent>("GameFeelComponent");
+	AttriSet = CreateDefaultSubobject<UAttrSet_BaseCharacter>("AttributeSet");
 	if (IsValid(SpringArmComp)) {
 		SpringArmComp->SetupAttachment(this->GetMesh());
 		if (IsValid(CameraComp)) {
 			CameraComp->AttachToComponent(SpringArmComp, FAttachmentTransformRules::KeepRelativeTransform);
 		}
+	}
+	if (IsValid(GetMesh())) {
+		CollisionBoxComp->SetupAttachment(GetMesh(), FName("weapon"));
 	}
 }
 
@@ -28,6 +33,12 @@ void AMainCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	GrantCharacterAbilities();
+
+	if (IsValid(CollisionBoxComp)) {
+		if (IsValid(CombatComp)) {
+			CollisionBoxComp->OnComponentBeginOverlap.AddDynamic(CombatComp.Get(), &UCombatComponent::OnAttackOverlapped);
+		}
+	}
 }
 
 void AMainCharacter::Tick(float DeltaTime)
@@ -52,6 +63,10 @@ void AMainCharacter::GrantCharacterAbilities()
 		AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(DA_GameplayAbilities->GetGameplayAbilitySubclass("GA_Dodge"), 1, -1, this));
 		AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(DA_GameplayAbilities->GetGameplayAbilitySubclass("GA_Melee_LightAttack"), 1, -1, this));
 		AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(DA_GameplayAbilities->GetGameplayAbilitySubclass("GA_Melee_LightCounterAttack"), 1, -1, this));
+		AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(DA_GameplayAbilities->GetGameplayAbilitySubclass("GA_Melee_HeavyCounterAttack"), 1, -1, this));
+		AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(DA_GameplayAbilities->GetGameplayAbilitySubclass("GA_Dead"), 1, -1, this));
+		AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(DA_GameplayAbilities->GetGameplayAbilitySubclass("GA_Stun"), 1, -1, this));
+		AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(DA_GameplayAbilities->GetGameplayAbilitySubclass("GA_Hurt"), 1, -1, this));
 		//AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(DA_GameplayAbilities->GetGameplayAbilitySubclass("GA_Block"), 1, -1, this));
 	}
 }
@@ -99,14 +114,8 @@ void AMainCharacter::LightAttack()
 {
 	if (IsValid(AbilitySystemComp)) {
 		if (AActor* TargetActor = DetectForCounterAttack()) {
-			if (IsValid(MotionWarpingComp)) {
-				FVector TargetLocation = TargetActor->GetActorLocation() + TargetActor->GetActorRightVector() * -150.f;
-				MotionWarpingComp->AddOrUpdateWarpTargetFromLocation(FName("EnemyLeftSide"), TargetLocation);
-				FRotator TargetRotation = (TargetActor->GetActorLocation() - TargetLocation).Rotation();
-				FMotionWarpingTarget RotationTarget;
-				RotationTarget.Name = FName("TargetRotation");
-				RotationTarget.Rotation = TargetRotation;
-				MotionWarpingComp->AddOrUpdateWarpTarget(RotationTarget);
+			if (IsValid(CombatComp)) {
+				CombatComp->SetCounterAttackTarget(TargetActor);
 			}
 			FGameplayTagContainer tagContainer;
 			tagContainer.AddTag(FGameplayTag::RequestGameplayTag(FName("GameplayAbility.Attack.Melee.LightCounterAttack")));
@@ -116,6 +125,21 @@ void AMainCharacter::LightAttack()
 		FGameplayTagContainer tagContainer;
 		tagContainer.AddTag(FGameplayTag::RequestGameplayTag(FName("GameplayAbility.Attack.Melee.LightAttack")));
 		AbilitySystemComp->TryActivateAbilitiesByTag(tagContainer);
+	}
+}
+
+void AMainCharacter::HeavyAttack()
+{
+	if (IsValid(AbilitySystemComp)) {
+		if (AActor* TargetActor = DetectForCounterAttack()) {
+			if (IsValid(CombatComp)) {
+				CombatComp->SetCounterAttackTarget(TargetActor);
+			}
+			FGameplayTagContainer tagContainer;
+			tagContainer.AddTag(FGameplayTag::RequestGameplayTag(FName("GameplayAbility.Attack.Melee.HeavyCounterAttack")));
+			AbilitySystemComp->TryActivateAbilitiesByTag(tagContainer);
+			return;
+		}
 	}
 }
 
@@ -189,7 +213,14 @@ AActor* AMainCharacter::DetectForCounterAttack()
 	if (GetWorld()->SweepMultiByObjectType(Hits, GetActorLocation() + CameraForwardDir * 50.f, EndLocation, BoxRotation.Quaternion(), ObjectFilter, FCollisionShape::MakeBox(CounterAttackBoxExtent), AdditionParams)) {
 		for (int i = 0; i < Hits.Num(); ++i) {
 			if (IsValid(Hits[i].GetActor()) && this->GetClass() != Hits[i].GetActor()->GetClass()) {
-				return Hits[i].GetActor();
+				float CharaterAndTargetDotProduct = FVector::DotProduct(this->GetActorForwardVector(), Hits[i].GetActor()->GetActorForwardVector());
+				if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(Hits[i].GetActor())) {
+					if (UAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent()) {
+						if (ASC->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.CanBeCountered"))) && CharaterAndTargetDotProduct < 0.f) {
+							return Hits[i].GetActor();
+						}
+					}
+				}
 			}
 		}
 	}

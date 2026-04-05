@@ -3,6 +3,7 @@
 
 #include "AIEnemyController.h"
 #include "../../Characters/AICharacter/AICharacter.h"
+#include "BehaviorTree/BlackboardComponent.h"
 
 AAIEnemyController::AAIEnemyController()
 {
@@ -18,6 +19,15 @@ void AAIEnemyController::OnPossess(APawn* inPawn)
 			UseBlackboard(Tree->GetBlackboardAsset(), temp);
 			Blackboard = temp;
 			RunBehaviorTree(Tree);
+		}
+	}
+}
+
+void AAIEnemyController::SetTarget()
+{
+	if (GetBlackboardComponent()) {
+		if (APlayerController* MainController = GetWorld()->GetFirstPlayerController()) {
+			GetBlackboardComponent()->SetValueAsObject(FName("Target"), MainController->GetPawn());
 		}
 	}
 }

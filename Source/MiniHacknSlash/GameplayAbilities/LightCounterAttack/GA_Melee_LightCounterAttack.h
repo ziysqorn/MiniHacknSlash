@@ -21,6 +21,24 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Need set | Counter Attack Montage")
 	TObjectPtr<UAnimMontage> AM_Attack;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Need set | Damage Gameplay Effect Subclass")
+	TSubclassOf<UGameplayEffect> GE_DamageSubclass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Need set | Countered Damage Multiplier GE Subclass")
+	TSubclassOf<UGameplayEffect> GE_CounteredDamageMultiplierSubclass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Need set | Camera Shake Subclass")
+	TSubclassOf<UCameraShakeBase> HitCameraShakeClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Need set | Bonus Damage")
+	float BonusDamage;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Need set | Bonus Stun Damage")
+	float BonusStunDamage;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Need set | Leap Back Distance")
+	float LeapBackDistance = 300.f;
+
 	void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
 	void OnAttackEnd(UGameplayAbility* Ability);

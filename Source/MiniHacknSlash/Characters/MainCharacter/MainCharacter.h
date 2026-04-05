@@ -5,7 +5,9 @@
 #include "CoreMinimal.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Components/BoxComponent.h"
 #include "MotionWarpingComponent.h"
+#include "../../AttributeSet/BaseCharacter/AttrSet_BaseCharacter.h"
 #include "../../ActorComponents/CombatComponent/CombatComponent.h"
 #include "../../ActorComponents/GameFeelComponent/GameFeelComponent.h"
 #include "../BaseCharacter/BaseCharacter.h"
@@ -14,13 +16,14 @@
 #include "../../Interfaces/CanLockTarget/CanLockTarget.h"
 #include "../../Interfaces/CanBlock/CanBlock.h"
 #include "../../Interfaces/CanAttack/CanAttack.h"
+#include "../../Interfaces/CanHeavyAttack/CanHeavyAttack.h"
 #include "MainCharacter.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class MINIHACKNSLASH_API AMainCharacter : public ABaseCharacter, public ICanMove, public ICanDodge, public ICanLockTarget, public ICanBlock, public ICanAttack
+class MINIHACKNSLASH_API AMainCharacter : public ABaseCharacter, public ICanMove, public ICanDodge, public ICanLockTarget, public ICanBlock, public ICanAttack, public ICanHeavyAttack
 {
 	GENERATED_BODY()
 
@@ -35,6 +38,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "SpringArm")
 	TObjectPtr<USpringArmComponent> SpringArmComp;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Collision Box Component")
+	TObjectPtr<UBoxComponent> CollisionBoxComp;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MotionWarping")
 	TObjectPtr<UMotionWarpingComponent> MotionWarpingComp;
 
@@ -43,6 +49,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ActorComponent | CombatComponent")
 	TObjectPtr<UGameFeelComponent> GameFeelComp;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attribute Set")
+	TObjectPtr<UAttrSet_BaseCharacter> AttriSet;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Need set | Detect Box Extent")
 	FVector DetectBoxExtent;
@@ -67,6 +76,8 @@ protected:
 	void EndBlock() override;
 
 	void LightAttack() override;
+
+	void HeavyAttack() override;
 
 	void LockTarget() override;
 

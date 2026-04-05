@@ -3,6 +3,13 @@
 
 #include "CustomHUD.h"
 
+void UCustomHUD::NativeDestruct()
+{
+	if (IsValid(PBar_Health)) PBar_Health->PercentDelegate.Clear();
+	if (IsValid(PBar_Stun)) PBar_Stun->PercentDelegate.Clear();
+
+	Super::NativeDestruct();
+}
 
 
 

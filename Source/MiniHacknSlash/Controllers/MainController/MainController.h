@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
+#include "../../ActorComponents/HUDComponent/HUDComponent.h"
 #include "../../Interfaces/CanSaveInput/CanSaveInput.h"
 #include "MainController.generated.h"
 
@@ -36,11 +37,17 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Need set | InputAction | Light Attack")
 	TObjectPtr<UInputAction> IA_Melee_LightAttack;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Need set | InputAction | Heavy Attack")
+	TObjectPtr<UInputAction> IA_Melee_HeavyAttack;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Need set | InputAction | Block")
 	TObjectPtr<UInputAction> IA_Block;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Need set | InputMappingContext")
 	TObjectPtr<UInputMappingContext> IMC_MainCharacter;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HUD Component")
+	TObjectPtr<UHUDComponent> HUDComp;
 
 	void SetupMappingContext();
 
@@ -62,7 +69,11 @@ protected:
 
 	void LightAttackTriggered();
 
+	void HeavyAttackTriggered();
+
 public:
+	AMainController();
+
 	TObjectPtr<UInputAction> GetMoveInputAction() {
 		return IA_Move;
 	}

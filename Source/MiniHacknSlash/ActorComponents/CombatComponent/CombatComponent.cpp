@@ -37,14 +37,13 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 void UCombatComponent::OnAttackOverlapped(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	AActor* ThisOwner = this->GetOwner();
-	if (IsValid(OtherActor) && OtherActor != ThisOwner) {
+	if (IsValid(OtherActor) && IsValid(ThisOwner) && OtherActor != ThisOwner) {
 		FGameplayTag TargetAttackedEventTag = FGameplayTag::RequestGameplayTag(FName("GameplayEvent.TargetAttacked"));
 		FGameplayEventData Payload;
 		if (OverlapHandledActorSet.Contains(OtherActor)) {
 			return;
 		}
 		OverlapHandledActorSet.Add(OtherActor);
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan, "Enemy's Attack Overlapped !");
 		Payload.EventTag = TargetAttackedEventTag;
 		Payload.Instigator = ThisOwner;
 		Payload.Target = OtherActor;

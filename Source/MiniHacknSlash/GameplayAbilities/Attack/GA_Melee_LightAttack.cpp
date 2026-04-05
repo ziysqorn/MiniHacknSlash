@@ -57,18 +57,43 @@ void UGA_Melee_LightAttack::TargetHit(FGameplayEventData eventData)
 			}
 			if (UAbilitySystemComponent* SelfAbilitySystemComp = this->GetAbilitySystemComponentFromActorInfo()) {
 				if (CurrentActorInfo) {
-					/*if (AActor* OwnerActor = CurrentActorInfo->OwnerActor.Get()) {
-						if (UHitStopComponent* HitStopComp = OwnerActor->FindComponentByClass<UHitStopComponent>()) {
-							HitStopComp->NetMulticast_HitStop(HitStopDuration, HitStopDilation);
-							HitStopComp->Client_ShakeCameraOnHit();
-						}
+					FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(GE_DamageSubclass);
+					if (SpecHandle.Data) {
+						SpecHandle.Data->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(FName("Data.Damage.BonusDamage")), BonusDamage);
 					}
-					if (AActor* TargetActor = TargetAbilitySystemComp->GetOwnerActor()) {
-						if (UHitStopComponent* HitStopComp = TargetActor->FindComponentByClass<UHitStopComponent>()) {
-							HitStopComp->NetMulticast_HitStop(HitStopDuration, HitStopDilation);
-							HitStopComp->Client_ShakeCameraOnHit();
-						}
-					}*/
+					SelfAbilitySystemComp->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), TargetAbilitySystemComp);
+
+					RefreshMultiplierDuration();
+				}
+			}
+		}
+	}
+}
+
+void UGA_Melee_LightAttack::RefreshMultiplierDuration()
+{
+	if (UAbilitySystemComponent* SelfAbilitySystemComp = this->GetAbilitySystemComponentFromActorInfo()) {
+		if (IsValid(GE_CounteredDamageMultiplierSubclass))
+		{
+			FGameplayTag MultiplierTag = FGameplayTag::RequestGameplayTag(FName("Effect.Combat.DamageMultiplier"));
+
+			FGameplayEffectQuery Query = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(FGameplayTagContainer(MultiplierTag));
+			TArray<FActiveGameplayEffectHandle> ActiveHandles = SelfAbilitySystemComp->GetActiveEffects(Query);
+
+			if (ActiveHandles.Num() > 0)
+			{
+				FActiveGameplayEffectHandle ActiveHandle = ActiveHandles[0];
+
+				if (const FActiveGameplayEffect* ActiveGE = SelfAbilitySystemComp->GetActiveGameplayEffect(ActiveHandle))
+				{
+					int CurrentStacks = ActiveGE->Spec.GetStackCount();
+					SelfAbilitySystemComp->RemoveActiveGameplayEffect(ActiveHandle, -1);
+					FGameplayEffectSpecHandle RefreshSpecHandle = MakeOutgoingGameplayEffectSpec(GE_CounteredDamageMultiplierSubclass);
+					if (RefreshSpecHandle.Data.IsValid())
+					{
+						RefreshSpecHandle.Data->SetStackCount(CurrentStacks);
+						SelfAbilitySystemComp->ApplyGameplayEffectSpecToSelf(*RefreshSpecHandle.Data.Get());
+					}
 				}
 			}
 		}

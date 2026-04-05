@@ -10,6 +10,13 @@
 #include "../../Interfaces/CanLockTarget/CanLockTarget.h"
 #include "../../Interfaces/CanBlock/CanBlock.h"
 #include "../../Interfaces/CanAttack/CanAttack.h"
+#include "../../Interfaces/CanHeavyAttack/CanHeavyAttack.h"
+
+
+AMainController::AMainController()
+{
+	HUDComp = CreateDefaultSubobject<UHUDComponent>("HUDComp");
+}
 
 void AMainController::BeginPlay()
 {
@@ -32,6 +39,7 @@ void AMainController::SetupInputComponent()
 		if (IsValid(IA_Block)) EIComponent->BindAction(IA_Block, ETriggerEvent::Triggered, this, &AMainController::BlockTriggered);
 		if (IsValid(IA_Block)) EIComponent->BindAction(IA_Block, ETriggerEvent::Completed, this, &AMainController::BlockTriggered);
 		if (IsValid(IA_Melee_LightAttack)) EIComponent->BindAction(IA_Melee_LightAttack, ETriggerEvent::Triggered, this, &AMainController::LightAttackTriggered);
+		if (IsValid(IA_Melee_HeavyAttack)) EIComponent->BindAction(IA_Melee_HeavyAttack, ETriggerEvent::Triggered, this, &AMainController::HeavyAttackTriggered);
 	}
 }
 
@@ -83,6 +91,14 @@ void AMainController::LightAttackTriggered()
 	AddSavedInputToBuffer(TEXT("L"));
 	if (ICanAttack* CanAttack = Cast<ICanAttack>(this->GetPawn())) {
 		CanAttack->LightAttack();
+	}
+}
+
+void AMainController::HeavyAttackTriggered()
+{
+	//AddSavedInputToBuffer(TEXT("H"));
+	if (ICanHeavyAttack* CanHeavyAttack = Cast<ICanHeavyAttack>(this->GetPawn())) {
+		CanHeavyAttack->HeavyAttack();
 	}
 }
 

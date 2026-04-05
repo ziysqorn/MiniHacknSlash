@@ -27,6 +27,9 @@ protected:
 	UPROPERTY()
 	TSet<AActor*> OverlapHandledActorSet;
 
+	UPROPERTY()
+	TWeakObjectPtr<AActor> CounterAttackTarget;
+
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
@@ -67,7 +70,20 @@ public:
 	UFUNCTION()
 	void OnAttackOverlapped(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
+	UFUNCTION(BlueprintCallable)
 	void ClearOverlapHandledActorSet() {
 		OverlapHandledActorSet.Empty();
+	}
+
+	UFUNCTION(BlueprintCallable)
+	AActor* GetCounterAttackTarget() {
+		if (CounterAttackTarget.IsValid()) {
+			return CounterAttackTarget.Get();
+		}
+		return nullptr;
+	}
+
+	void SetCounterAttackTarget(AActor* Target) {
+		CounterAttackTarget = Target;
 	}
 };

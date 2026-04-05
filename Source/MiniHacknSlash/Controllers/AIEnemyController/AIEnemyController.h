@@ -17,6 +17,7 @@ class MINIHACKNSLASH_API AAIEnemyController : public AAIController
 public:
 	AAIEnemyController();
 
+	void SetTarget();
 protected:
 	void OnPossess(APawn* inPawn) override;
 };
