@@ -4,6 +4,7 @@
 #include "GA_Melee_LightAttack.h"
 #include "../../ActorComponents/CombatComponent/CombatComponent.h"
 #include "../../ActorComponents/GameFeelComponent/GameFeelComponent.h"
+#include "../../ActorComponents/CameraAdjustmentComponent/CameraAdjustmentComponent.h"
 #include "AbilitySystemInterface.h"
 #include "AbilitySystemComponent.h"
 
@@ -18,15 +19,22 @@ void UGA_Melee_LightAttack::ActivateAbility(const FGameplayAbilitySpecHandle Han
 		CurrentSpecHandle = Handle;
 		CurrentActorInfo = ActorInfo;
 		CurrentActivationInfo = ActivationInfo;
+
 		if (UCombatComponent* CombatComp = ActorInfo->OwnerActor->FindComponentByClass<UCombatComponent>()) {
 			CombatComp->AddAttackInputToBuffer(TEXT("L"));
 		}
+
+		if (UCameraAdjustmentComponent* CameraAdjustmentComp = ActorInfo->OwnerActor->FindComponentByClass<UCameraAdjustmentComponent>()) {
+			CameraAdjustmentComp->StartCombatState();
+		}
+
 		if (IsValid(AM_Attack)) {
-			if (UAbilityTask_PlayMontageAndWait* PlayDodgeMontageAndWait = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, FName("PlayAttackMontageAndWait"), AM_Attack)) {
-				PlayDodgeMontageAndWait->OnCompleted.AddDynamic(this, &UGA_Melee_LightAttack::AttackEnd);
-				PlayDodgeMontageAndWait->ReadyForActivation();
+			if (UAbilityTask_PlayMontageAndWait* PlayAttackMontageAndWait = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, FName("PlayAttackMontageAndWait"), AM_Attack)) {
+				PlayAttackMontageAndWait->OnCompleted.AddDynamic(this, &UGA_Melee_LightAttack::AttackEnd);
+				PlayAttackMontageAndWait->ReadyForActivation();
 			}
 		}
+
 		FGameplayTag targetHitTag = FGameplayTag::RequestGameplayTag(FName("GameplayEvent.TargetAttacked"));
 		if (UAbilityTask_WaitGameplayEvent* WaitForTargetHitTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, targetHitTag, nullptr, false, false)) {
 			WaitForTargetHitTask->EventReceived.AddDynamic(this, &UGA_Melee_LightAttack::TargetHit);
@@ -35,6 +43,7 @@ void UGA_Melee_LightAttack::ActivateAbility(const FGameplayAbilitySpecHandle Han
 		else {
 			EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 		}
+
 	}
 }
 
@@ -64,6 +73,14 @@ void UGA_Melee_LightAttack::TargetHit(FGameplayEventData eventData)
 					SelfAbilitySystemComp->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), TargetAbilitySystemComp);
 
 					RefreshMultiplierDuration();
+
+					if (HitCameraShakeClass)
+					{
+						if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
+						{
+							PC->ClientStartCameraShake(HitCameraShakeClass, 1.0f);
+						}
+					}
 				}
 			}
 		}

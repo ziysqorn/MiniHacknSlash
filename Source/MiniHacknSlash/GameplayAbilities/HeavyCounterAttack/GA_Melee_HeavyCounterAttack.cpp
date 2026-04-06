@@ -4,6 +4,7 @@
 #include "GA_Melee_HeavyCounterAttack.h"
 #include "../../ActorComponents/CombatComponent/CombatComponent.h"
 #include "../../ActorComponents/GameFeelComponent/GameFeelComponent.h"
+#include "../../ActorComponents/CameraAdjustmentComponent/CameraAdjustmentComponent.h"
 #include "MotionWarpingComponent.h"
 #include "AbilitySystemInterface.h"
 #include "AbilitySystemComponent.h"
@@ -15,20 +16,18 @@ void UGA_Melee_HeavyCounterAttack::ActivateAbility(const FGameplayAbilitySpecHan
 		CurrentSpecHandle = Handle;
 		CurrentActorInfo = ActorInfo;
 		CurrentActivationInfo = ActivationInfo;
-		//if (UMotionWarpingComponent* MotionWarpingComp = ActorInfo->OwnerActor->FindComponentByClass<UMotionWarpingComponent>()) {
-		//	if (UCombatComponent* CombatComp = ActorInfo->OwnerActor->FindComponentByClass<UCombatComponent>()) {
-		//		if (AActor * CounterAttackTarget = CombatComp->GetCounterAttackTarget()) {
-		//			FVector AttackTargetLocation = CounterAttackTarget->GetActorLocation() + CounterAttackTarget->GetActorForwardVector() * -DistanceFromEnemyBack;
-		//			MotionWarpingComp->AddOrUpdateWarpTargetFromLocation(FName("EnemyBackSide"), AttackTargetLocation);
-		//		}
-		//	}
-		//}
+
+		if (UCameraAdjustmentComponent* CameraAdjustmentComp = ActorInfo->OwnerActor->FindComponentByClass<UCameraAdjustmentComponent>()) {
+			CameraAdjustmentComp->StartCombatState();
+		}
+
 		if (IsValid(AM_Attack)) {
-			if (UAbilityTask_PlayMontageAndWait* PlayDodgeMontageAndWait = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, FName("PlayAttackMontageAndWait"), AM_Attack)) {
-				PlayDodgeMontageAndWait->OnCompleted.AddDynamic(this, &UGA_Melee_HeavyCounterAttack::AttackEnd);
-				PlayDodgeMontageAndWait->ReadyForActivation();
+			if (UAbilityTask_PlayMontageAndWait* PlayMontageAndWait = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, FName("PlayAttackMontageAndWait"), AM_Attack)) {
+				PlayMontageAndWait->OnCompleted.AddDynamic(this, &UGA_Melee_HeavyCounterAttack::AttackEnd);
+				PlayMontageAndWait->ReadyForActivation();
 			}
 		}
+
 		FGameplayTag targetHitTag = FGameplayTag::RequestGameplayTag(FName("GameplayEvent.TargetAttacked"));
 		if (UAbilityTask_WaitGameplayEvent* WaitForTargetHitTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, targetHitTag, nullptr, false, false)) {
 			WaitForTargetHitTask->EventReceived.AddDynamic(this, &UGA_Melee_HeavyCounterAttack::TargetHit);
@@ -82,7 +81,7 @@ void UGA_Melee_HeavyCounterAttack::TargetHit(FGameplayEventData eventData)
 
 					if (HitCameraShakeClass)
 					{
-						if (APlayerController* PC = CurrentActorInfo->PlayerController.Get())
+						if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
 						{
 							PC->ClientStartCameraShake(HitCameraShakeClass, 1.0f);
 						}

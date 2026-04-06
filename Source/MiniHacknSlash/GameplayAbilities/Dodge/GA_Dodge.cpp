@@ -71,11 +71,15 @@ TObjectPtr<UAnimMontage> UGA_Dodge::ChooseMontageToUse()
 						return DA_DodgeAnimMontages->GetDodgeMontage(DodgeMovementVector);
 					}
 				}
-				if (DodgeMovementVector == FVector::Zero()) {
-					DodgeMovementVector = CurrentActorInfo->OwnerActor->GetActorForwardVector();
-					DodgeMovementVector = -DodgeMovementVector;
+
+				FVector NormalizedVelocity = CurrentActorInfo->OwnerActor->GetVelocity().GetSafeNormal();
+
+				if (NormalizedVelocity == FVector::Zero()) {
+					NormalizedVelocity = CurrentActorInfo->OwnerActor->GetActorForwardVector();
+					NormalizedVelocity = -NormalizedVelocity;
 				}
-				CurrentActorInfo->OwnerActor->SetActorRotation(DodgeMovementVector.Rotation());
+
+				CurrentActorInfo->OwnerActor->SetActorRotation(NormalizedVelocity.Rotation());
 				return DA_DodgeAnimMontages->GetDodgeMontage("Dodge_Forward");
 			}
 		}

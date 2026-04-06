@@ -33,3 +33,10 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 }
 
+void ABaseCharacter::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
+{
+	if (IsValid(AbilitySystemComp)) {
+		TagContainer = AbilitySystemComp->GetOwnedGameplayTags();
+	}
+}
+

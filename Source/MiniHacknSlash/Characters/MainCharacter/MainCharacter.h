@@ -10,6 +10,7 @@
 #include "../../AttributeSet/BaseCharacter/AttrSet_BaseCharacter.h"
 #include "../../ActorComponents/CombatComponent/CombatComponent.h"
 #include "../../ActorComponents/GameFeelComponent/GameFeelComponent.h"
+#include "../../ActorComponents/CameraAdjustmentComponent/CameraAdjustmentComponent.h"
 #include "../BaseCharacter/BaseCharacter.h"
 #include "../../Interfaces/CanMove/CanMove.h"
 #include "../../Interfaces/CanDodge/CanDodge.h"
@@ -47,8 +48,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ActorComponent | CombatComponent")
 	TObjectPtr<UCombatComponent> CombatComp;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ActorComponent | CombatComponent")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ActorComponent | GameFeelComponent")
 	TObjectPtr<UGameFeelComponent> GameFeelComp;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ActorComponent | CameraAdjustmentComponent")
+	TObjectPtr<UCameraAdjustmentComponent> CameraAdjustmentComp;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attribute Set")
 	TObjectPtr<UAttrSet_BaseCharacter> AttriSet;

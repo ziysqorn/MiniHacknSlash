@@ -7,6 +7,11 @@
 #include "../../GameplayAbilities/Move/GA_Move.h"
 #include "../../Controllers/MainController/MainController.h"
 
+//Only for prototyping
+#include "../../CustomGameStates/MainGameState/MainGameState.h"
+#include "../../Controllers/AIEnemyController/AIEnemyController.h"
+//
+
 
 AMainCharacter::AMainCharacter()
 {
@@ -16,6 +21,7 @@ AMainCharacter::AMainCharacter()
 	MotionWarpingComp = CreateDefaultSubobject<UMotionWarpingComponent>("MotionWarpingComponent");
 	CombatComp = CreateDefaultSubobject<UCombatComponent>("CombatComponent");
 	GameFeelComp = CreateDefaultSubobject<UGameFeelComponent>("GameFeelComponent");
+	CameraAdjustmentComp = CreateDefaultSubobject<UCameraAdjustmentComponent>("CameraAdjustmentComp");
 	AttriSet = CreateDefaultSubobject<UAttrSet_BaseCharacter>("AttributeSet");
 	if (IsValid(SpringArmComp)) {
 		SpringArmComp->SetupAttachment(this->GetMesh());
@@ -37,6 +43,15 @@ void AMainCharacter::BeginPlay()
 	if (IsValid(CollisionBoxComp)) {
 		if (IsValid(CombatComp)) {
 			CollisionBoxComp->OnComponentBeginOverlap.AddDynamic(CombatComp.Get(), &UCombatComponent::OnAttackOverlapped);
+		}
+	}
+
+	//Only for prototyping
+	if (AMainGameState* MainGameState = GetWorld()->GetGameState<AMainGameState>()) {
+		if (MainGameState->EnemyRef.IsValid()) {
+			if (AAIEnemyController* EnemyController = MainGameState->EnemyRef->GetController<AAIEnemyController>()) {
+				EnemyController->SetTarget();
+			}
 		}
 	}
 }
@@ -67,7 +82,6 @@ void AMainCharacter::GrantCharacterAbilities()
 		AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(DA_GameplayAbilities->GetGameplayAbilitySubclass("GA_Dead"), 1, -1, this));
 		AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(DA_GameplayAbilities->GetGameplayAbilitySubclass("GA_Stun"), 1, -1, this));
 		AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(DA_GameplayAbilities->GetGameplayAbilitySubclass("GA_Hurt"), 1, -1, this));
-		//AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(DA_GameplayAbilities->GetGameplayAbilitySubclass("GA_Block"), 1, -1, this));
 	}
 }
 

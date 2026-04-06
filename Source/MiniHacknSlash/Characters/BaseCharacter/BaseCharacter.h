@@ -6,11 +6,12 @@
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
 #include "AbilitySystemComponent.h"
+#include "GameplayTagAssetInterface.h"
 #include "../../DataAsset/GameplayAbilities/DA_GameplayAbilities.h"
 #include "BaseCharacter.generated.h"
 
 UCLASS()
-class MINIHACKNSLASH_API ABaseCharacter : public ACharacter, public IAbilitySystemInterface
+class MINIHACKNSLASH_API ABaseCharacter : public ACharacter, public IAbilitySystemInterface, public IGameplayTagAssetInterface
 {
 	GENERATED_BODY()
 
@@ -37,4 +38,6 @@ public:
 	UAbilitySystemComponent* GetAbilitySystemComponent() const override {
 		return AbilitySystemComp;
 	}
+
+	void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
 };

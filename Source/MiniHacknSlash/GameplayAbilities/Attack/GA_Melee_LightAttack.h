@@ -31,6 +31,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Need set | Countered Damage Multiplier GE Subclass")
 	TSubclassOf<UGameplayEffect> GE_CounteredDamageMultiplierSubclass;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Need set | Camera Shake Subclass")
+	TSubclassOf<UCameraShakeBase> HitCameraShakeClass;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Need set | Bonus Damage")
 	float BonusDamage;
 

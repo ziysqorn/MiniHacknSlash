@@ -2,6 +2,7 @@
 
 
 #include "Enemy.h"
+#include "../../CustomGameStates/MainGameState/MainGameState.h"
 
 AEnemy::AEnemy()
 {
@@ -43,6 +44,10 @@ void AEnemy::BeginPlay()
 		if (IsValid(CombatComp)) {
 			CollisionBoxComp->OnComponentBeginOverlap.AddDynamic(CombatComp.Get(), &UCombatComponent::OnAttackOverlapped);
 		}
+	}
+
+	if (AMainGameState* MainGameState = GetWorld()->GetGameState<AMainGameState>()) {
+		MainGameState->EnemyRef = this;
 	}
 }
 
